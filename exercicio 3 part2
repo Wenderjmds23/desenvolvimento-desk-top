@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle com Teclado em Tabuleiro 6x6</title>
+    <style>
+        #tabuleiro {
+            display: grid;
+            grid-template-columns: repeat(6, 50px);
+            grid-template-rows: repeat(6, 50px);
+            gap: 5px;
+        }
+        .celula {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            text-align: center;
+            line-height: 50px;
+            border: 1px solid black;
+        }
+        .piscar {
+            animation: piscar 0.5s;
+        }
+        @keyframes piscar {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Controle o Caractere * com as Setas</h1>
+    <div id="tabuleiro"></div>
+    <p id="mensagem"></p>
+
+    <script>
+        const tabuleiro = document.getElementById("tabuleiro");
+        const tamanhoTabuleiro = 6;
+        let posicaoJogador = { x: 0, y: 0 }; // Início no canto superior esquerdo
+        const casasEspeciais = Array.from({ length: tamanhoTabuleiro * tamanhoTabuleiro }, () => Math.random() < 0.2 ? 'vitoria' : (Math.random() < 0.5 ? 'normal' : 'derrota'));
+        casasEspeciais[0] = 'normal'; // A casa inicial é normal
+
+        // Função para criar o tabuleiro
+        function criarTabuleiro() {
+            for (let i = 0; i < tamanhoTabuleiro; i++) {
+                for (let j = 0; j < tamanhoTabuleiro; j++) {
+                    const celula = document.createElement("div");
+                    celula.classList.add("celula");
+                    celula.dataset.x = i;
+                    celula.dataset.y = j;
+                    tabuleiro.appendChild(celula);
+                }
+            }
+            atualizarTabuleiro();
+        }
+
+        // Função para atualizar a posição do jogador no tabuleiro
+        function atualizarTabuleiro() {
+            // Limpa o tabuleiro
+            document.querySelectorAll(".celula").forEach(celula => {
+                celula.textContent = "";
+                celula.classList.remove("piscar");
+            });
+            // Define o caractere '*' na nova posição do jogador
+            const jogador = document.querySelector(`.celula[data-x='${posicaoJogador.x}'][data-y='${posicaoJogador.y}']`);
+            jogador.textContent = "*";
+            jogador.classList.add("piscar"); // Adiciona a classe de piscar
+
+            // Verifica o tipo de casa
+            const tipoCasa = casasEspeciais[posicaoJogador.x * tamanhoTabuleiro + posicaoJogador.y];
+            if (tipoCasa === 'vitoria') {
+                document.getElementById("mensagem").textContent = "Você venceu! Passou por uma casa especial de vitória!";
+                desabilitarTeclas();
+            } else if (tipoCasa === 'derrota') {
+                document.getElementById("mensagem").textContent = "Você perdeu! Passou por uma casa especial de derrota!";
+                desabilitarTeclas();
+            } else {
+                document.getElementById("mensagem").textContent = ""; // Limpa a mensagem se for uma casa normal
+            }
+        }
+
+        // Função para mover o jogador com as teclas de seta
+        function moverJogador(event) {
+            switch (event.key) {
+                case "ArrowUp":
+                    if (posicaoJogador.x > 0) posicaoJogador.x--;
+                    break;
+                case "ArrowDown":
+                    if (posicaoJogador.x < tamanhoTabuleiro - 1) posicaoJogador.x++;
+                    break;
+                case "ArrowLeft":
+                    if (posicaoJogador.y > 0) posicaoJogador.y--;
+                    break;
+                case "ArrowRight":
+                    if (posicaoJogador.y < tamanhoTabuleiro - 1) posicaoJogador.y++;
+                    break;
+                default:
+                    return;
+            }
+            atualizarTabuleiro();
+        }
+
+        // Função para desabilitar as teclas após a vitória ou derrota
+        function desabilitarTeclas() {
+            document.removeEventListener("keydown", moverJogador);
+        }
+
+        // Inicializa o tabuleiro
+        criarTabuleiro();
+
+        // Escuta o evento de tecla pressionada
+        document.addEventListener("keydown", moverJogador);
+    </script>
+</body>
+</html>
